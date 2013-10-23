@@ -1,10 +1,12 @@
 from lxml import etree
 import requests
 
-from regparser.notice.diff import parse_amdpar
+from regparser.notice.diff import parse_amdpar, find_section
 from regparser.notice.address import fetch_addresses
 from regparser.notice.sxs import find_section_by_section
 from regparser.notice.sxs import build_section_by_section
+
+from regparser.tree.xml_parser import reg_text
 
 
 def build_notice(cfr_title, cfr_part, fr_notice):
@@ -39,6 +41,11 @@ def build_notice(cfr_title, cfr_part, fr_notice):
 
     return notice
 
+def reg_tree_print(tree):
+    print tree.label
+
+    for c in tree.children:
+        reg_tree_print(c)
 
 def process_xml(notice, notice_xml):
     """Pull out relevant fields from the xml and add them to the notice"""
@@ -59,7 +66,17 @@ def process_xml(notice, notice_xml):
     context = []
     amends = []
     for par in notice_xml.xpath('//AMDPAR'):
+        section_xml = find_section(par)
+        if section_xml is not None:
+            text = etree.tostring(par, encoding=unicode)
+            print "------\n"
+            print text.encode('utf-8')
+            section_tree = reg_text.build_section('1005', section_xml)
+            reg_tree_print(section_tree)
         amend_set, context = parse_amdpar(par, context)
+        if section_xml is not None:
+            print amend_set
+            print "------\n"
         amends.extend(amend_set)
     if amends:
         notice['amendments'] = amends

@@ -50,8 +50,6 @@ def node_is_empty(node):
 
 def parse_amdpar(par, initial_context):
     text = etree.tostring(par, encoding=unicode)
-    #print ""
-    #print text.strip()
     tokenized = [t[0] for t, _, _ in amdpar.token_patterns.scanString(text)]
     tokenized = switch_passive(tokenized)
     tokenized = context_to_paragraph(tokenized)
@@ -188,3 +186,9 @@ def make_amendments(tokenized):
             elif verb:
                 amends.append((verb, token.label_text()))
     return amends
+
+
+def find_section(par):
+    for sibling in par.itersiblings():
+        if sibling.tag == 'SECTION':
+            return sibling

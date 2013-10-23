@@ -44,8 +44,8 @@ def build_tree(reg_xml):
             sections.append(build_section(reg_part, child))
 
     tree.children = sections
-    non_reg_sections = build_non_reg_text(reg_xml)
-    tree.children += non_reg_sections
+    #non_reg_sections = build_non_reg_text(reg_xml)
+    #tree.children += non_reg_sections
 
     return tree
 
