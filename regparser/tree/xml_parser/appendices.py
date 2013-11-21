@@ -8,7 +8,7 @@ from pyparsing import Optional, Word, LineStart, Suppress
 from regparser.grammar.interpretation_headers import parser as headers
 from regparser.tree.interpretation import text_to_label
 from regparser.tree.node_stack import NodeStack
-from regparser.tree.struct import Node
+from regparser.tree.struct import Node, treeify
 from regparser.tree.xml_parser import tree_utils
 from regparser.utils import roman_nums
 
@@ -110,7 +110,81 @@ def determine_next_section(m_stack, node_level):
         #We don't need to get the next marker on a previous
         #level because this doesn't happen.
 
+def collapsed_interp_paragraph(node, marker):
 
+    text = node.text.encode('utf-8')
+    first_marker = get_interpretation_markers(text.strip())
+    actual_first_marker = '%s.' % first_marker
+
+    if text.strip() == actual_first_marker:
+        print 'candidate'
+
+    children  = [c for c in node if c.tag == 'E']
+    if children:
+        c = children[0]
+        markers = get_interpretation_markers(c.tail.lstrip())
+        if markers is not None:
+            print tree_utils.get_node_text(node).encode('utf-8')
+            print first_marker
+            print markers
+            print '---------------'
+
+
+
+    
+    #actual_marker = '%s.' % marker
+    #print actual_marker
+
+def interp_inner_child(child_node):
+    """ Build an inner child node (basically a node that's after 
+    -Interp- in the tree) """
+    node_text = tree_utils.get_node_text(child_node)
+    marker = get_interpretation_markers(node_text)
+
+    collapsed_interp_paragraph(child_node, marker)
+
+    n = Node(node_text, label=[marker], node_type=Node.INTERP)
+    node_level = interpretation_level(marker)
+    return node_level, n
+
+def process_inner_children(inner_stack, node):
+    children = itertools.takewhile(
+        lambda x: x.tag != 'HD', node.itersiblings())
+    for c in children:
+        node_level, n = interp_inner_child(c)
+        tree_utils.add_to_stack(inner_stack, node_level, n)
+
+def build_supplement_tree(reg_part, m_stack, node):
+    """ Build the tree for the supplement section. """
+
+    title = get_app_title(node)
+    root = Node(
+        node_type=Node.INTERP, 
+        label=[reg_part, Node.INTERP_MARK], 
+        title=title)
+
+    supplement_nodes = [root]
+
+    for ch in node:
+        if ch.tag.upper() == 'HD' and ch.attrib['SOURCE'] != 'HED':
+            label_text = text_to_label(ch.text, reg_part)
+            n = Node(node_type=Node.INTERP, label=label_text, title=ch.text)
+            node_level = 1
+            
+            inner_stack = NodeStack()
+            tree_utils.add_to_stack(inner_stack, node_level, n)
+
+            process_inner_children(inner_stack, ch)
+                
+            while inner_stack.size() > 1:
+                tree_utils.unwind_stack(inner_stack)
+
+            ch_node = inner_stack.m_stack[0][0][1]
+            supplement_nodes.append(ch_node)
+
+    supplement_tree = treeify(supplement_nodes)
+    return supplement_tree
+    
 def process_supplement(part, m_stack, child):
     """ Parse the Supplement sections and paragraphs. """
     for ch in child.getchildren():
@@ -126,6 +200,7 @@ def process_supplement(part, m_stack, child):
             n = Node(node_text, label=[marker], node_type=Node.INTERP)
             node_level = interpretation_level(marker)
         tree_utils.add_to_stack(m_stack, node_level, n)
+
 
 
 def process_appendix(m_stack, current_section, child):
@@ -188,13 +263,44 @@ def process_appendix(m_stack, current_section, child):
                 last[1].text = last[1].text + '\n %s' % node_text
 
 
+def get_app_title(node):
+    """ Appendix/Supplement sections have the title in an HD tag, or 
+    if they are reserved, in a <RESERVED> tag. Extract the title. """
+
+    titles = node.xpath("./HD[@SOURCE='HED']")
+    if titles:
+        return titles[0].text
+    else:
+        return node.xpath("./RESERVED")[0]
+    
+
 def build_non_reg_text(reg_xml, reg_part):
+    """ This builds the tree for the non-regulation text such as Appendices 
+    and the Supplement section """
+    doc_root = etree.fromstring(reg_xml)
+    non_reg_sects = doc_root.xpath('//PART/APPENDIX')
+    m_stack = NodeStack()
+
+    for non_reg_sect in non_reg_sects:
+        section_title = get_app_title(non_reg_sect)
+        if 'Supplement' in section_title and 'Part' in section_title:
+            supplement_sections = build_supplement_tree(
+                reg_part, m_stack, non_reg_sect)
+
+    return supplement_sections
+
+def build_non_reg_text_old(reg_xml, reg_part):
     """ This builds the tree for the non-regulation text such as Appendices
     and the Supplement section. """
     doc_root = etree.fromstring(reg_xml)
 
-    #reg_part = int(doc_root.xpath('//REGTEXT')[0].attrib['PART'])
-    last_section = doc_root.xpath('//REGTEXT/PART/SECTION[last()]')[0]
+    last_section = doc_root.xpath('//PART/SECTION[last()]')[0]
+    appendices = doc_root.xpath('//PART/APPENDIX')
+
+    for app in appendices:
+        section_title = get_app_title(app)
+        if 'Supplement' in section_title and 'Part' in section_title:
+            process_supplement(app)
 
     section_type = None
     node_type = None
