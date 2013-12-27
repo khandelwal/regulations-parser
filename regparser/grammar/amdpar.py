@@ -109,25 +109,25 @@ comment_p = (
 section_heading_of = (
     Marker("heading") + Marker("of")
     + unified.marker_part_section
-    ).setParseAction(lambda m: tokens.Paragraph([m.part, None, m.section], 
+    ).setParseAction(lambda m: tokens.Paragraph([m.part, m.section], 
         field=tokens.Paragraph.TEXT_FIELD))
 intro_text_of = (
     intro_text_marker + Marker("of")
     + unified.marker_paragraph.copy()
-    ).setParseAction(lambda m: tokens.Paragraph([None, None, None,
+    ).setParseAction(lambda m: tokens.Paragraph([None, None,
         m.p1, m.p2, m.p3, m.p4, m.p5], 
         field=tokens.Paragraph.TEXT_FIELD))
 single_par = (
     unified.marker_paragraph
     + Optional(intro_text_marker)
-    ).setParseAction(lambda m: tokens.Paragraph([None, None, None,
+    ).setParseAction(lambda m: tokens.Paragraph([None, None,
         m.p1, m.p2, m.p3, m.p4, m.p5], 
         field=(tokens.Paragraph.TEXT_FIELD if m[-1] == 'text' else None)))
 section_single_par = (
     unified.marker_part_section
     + unified.depth1_p
     + Optional(intro_text_marker)
-    ).setParseAction(lambda m: tokens.Paragraph([m.part, None,
+    ).setParseAction(lambda m: tokens.Paragraph([m.part,
         m.section, m.p1, m.p2, m.p3, m.p4, m.p5],
         field=(tokens.Paragraph.TEXT_FIELD if m[-1] == 'text' else None)))
 single_comment_par=(

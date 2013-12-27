@@ -8,14 +8,14 @@ class GrammarAmdParTests(TestCase):
 
     def test_tokenlist_iteratable(self):
         token_list = tokens.TokenList([
-            tokens.Paragraph([1005, None, 1]),
-            tokens.Paragraph([1005, None, 2]),
-            tokens.Paragraph([1005, None, 3]),
+            tokens.Paragraph([1005, 1]),
+            tokens.Paragraph([1005, 2]),
+            tokens.Paragraph([1005, 3]),
         ])
 
         count = 1
         for t in token_list:
-            self.assertEqual(t.label, [1005, None, count])
+            self.assertEqual(t.label, [1005, count])
             count += 1
         self.assertEqual(count, 4)
 
@@ -25,7 +25,7 @@ class GrammarAmdParTests(TestCase):
         self.assertEqual(result, [
             tokens.Context(['9876', None, '1'], certain=True),
             tokens.Verb(tokens.Verb.PUT, active=True),
-            tokens.Paragraph([None, None, None, 'b'])
+            tokens.Paragraph([None, None, 'b'])
         ])
 
     def test_example2(self):
@@ -92,7 +92,7 @@ class GrammarAmdParTests(TestCase):
         result = [m[0] for m,_,_ in token_patterns.scanString(text)]
         self.assertEqual(result, [
             tokens.Context([None, 'Subpart:A'], certain=True),
-            tokens.Paragraph(['4444', None, '3', 'a']),
+            tokens.Paragraph(['4444', '3', 'a']),
             tokens.Verb(tokens.Verb.PUT, active=False),
         ])
 
@@ -138,8 +138,8 @@ class GrammarAmdParTests(TestCase):
         text = "paragraph (b) and the introductory text of paragraph (c)"
         result = [m[0] for m,_,_ in token_patterns.scanString(text)]
         self.assertEqual(result, [
-            tokens.Paragraph([None, None, None, 'b']),
-            tokens.Paragraph([None, None, None, 'c'], 
+            tokens.Paragraph([None, None, 'b']),
+            tokens.Paragraph([None, None, 'c'], 
                 field=tokens.Paragraph.TEXT_FIELD)
         ])
 
@@ -157,7 +157,7 @@ class GrammarAmdParTests(TestCase):
                 tokens.Paragraph([None, None, None, 'b']),
             ]),
             tokens.Verb(tokens.Verb.POST, active=True),
-            tokens.Paragraph([None, None, None, 'd']),
+            tokens.Paragraph([None, None, 'd']),
         ])
 
     def test_example12(self):
@@ -195,7 +195,7 @@ class GrammarAmdParTests(TestCase):
         result = [m[0] for m,_,_ in token_patterns.scanString(text)]
         self.assertEqual(result, [
             tokens.Verb(tokens.Verb.DELETE, active=True),
-            tokens.Paragraph([None, None, None, 'c', '5'])
+            tokens.Paragraph([None, None, 'c', '5'])
         ])
         
     def test_example15(self):
@@ -212,8 +212,8 @@ class GrammarAmdParTests(TestCase):
                 tokens.Paragraph([None, None, None, 'c', '2', 'ii', 'A', '2']),
             ]),
             tokens.Verb(tokens.Verb.MOVE, active=True),
-            tokens.Paragraph([None, None, None, 'c', '2', 'iii']),
-            tokens.Paragraph([None, None, None, 'c', '2', 'iv']),
+            tokens.Paragraph([None, None, 'c', '2', 'iii']),
+            tokens.Paragraph([None, None, 'c', '2', 'iv']),
         ])
 
     def test_example16(self):
