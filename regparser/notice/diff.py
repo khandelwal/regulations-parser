@@ -65,12 +65,16 @@ def node_is_empty(node):
 def parse_amdpar(par, initial_context):
     text = etree.tostring(par, encoding=unicode)
     tokenized = [t[0] for t, _, _ in amdpar.token_patterns.scanString(text)]
+
+    print tokenized
     tokenized = switch_passive(tokenized)
     tokenized, subpart = deal_with_subpart_adds(tokenized)
     tokenized = context_to_paragraph(tokenized)
     if not subpart:
         tokenized = separate_tokenlist(tokenized)
     tokenized, final_context = compress_context(tokenized, initial_context)
+    print 'compress_context'
+    print tokenized
     amends = make_amendments(tokenized, subpart)
     return amends, final_context
 
@@ -192,6 +196,13 @@ def compress(lhs_label, rhs_label):
         label[i] = rhs_label[i] or label[i]
     return label
 
+def propagate_context_to_paragraph(context_label, paragraph_label):
+    """ Use a Context to inform the label for a Paragraph """
+
+    #Contexts contain subpart information, ignore that here.
+    context_label = context_label[:1] + context_label[2:]
+    return compress(context_label, paragraph_label)
+
 
 def compress_context(tokenized, initial_context):
     """Add context to each of the paragraphs (removing context)"""
@@ -209,6 +220,8 @@ def compress_context(tokenized, initial_context):
                     context,
                     [token.label[0], None, token.label[1]] + token.label[2:])
             else:
+                print 'COMPRESS CONTEXT HERE 1'
+                print token.label
                 context = compress(context, token.label)
             continue
         #   Another corner case: a "paragraph" is indicates interp context
@@ -222,7 +235,11 @@ def compress_context(tokenized, initial_context):
                     p for p in token.label[3:] if p) + ')'])
             continue
         elif isinstance(token, tokens.Paragraph):
-            context = compress(context, token.label)
+            print 'COMPRESS CONTEXT HERE 2'
+            #context = compress(context, token.label)
+            context = propagate_context_to_paragraph(context, token.label)
+
+            print context
             token.label = context
         converted.append(token)
     return converted, context

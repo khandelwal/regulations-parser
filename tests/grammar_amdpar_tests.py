@@ -76,13 +76,13 @@ class GrammarAmdParTests(TestCase):
         self.assertEqual(result, [
             tokens.Verb(tokens.Verb.POST, active=True),
             tokens.TokenList([
-                tokens.Paragraph(['6363', None, '30']),
-                tokens.Paragraph(['6363', None, '31']),
-                tokens.Paragraph(['6363', None, '32']),
-                tokens.Paragraph(['6363', None, '33']),
-                tokens.Paragraph(['6363', None, '34']),
-                tokens.Paragraph(['6363', None, '35']),
-                tokens.Paragraph(['6363', None, '36']),
+                tokens.Paragraph(['6363', '30']),
+                tokens.Paragraph(['6363', '31']),
+                tokens.Paragraph(['6363', '32']),
+                tokens.Paragraph(['6363', '33']),
+                tokens.Paragraph(['6363', '34']),
+                tokens.Paragraph(['6363', '35']),
+                tokens.Paragraph(['6363', '36']),
             ])
         ])
 
@@ -153,8 +153,8 @@ class GrammarAmdParTests(TestCase):
             tokens.Verb(tokens.Verb.PUT, active=True),
             tokens.Paragraph([], field = tokens.Paragraph.HEADING_FIELD),
             tokens.TokenList([
-                tokens.Paragraph([None, None, None, 'a']),
-                tokens.Paragraph([None, None, None, 'b']),
+                tokens.Paragraph([None, None, 'a']),
+                tokens.Paragraph([None,  None, 'b']),
             ]),
             tokens.Verb(tokens.Verb.POST, active=True),
             tokens.Paragraph([None, None, 'd']),
@@ -205,11 +205,11 @@ class GrammarAmdParTests(TestCase):
         result = [m[0] for m,_,_ in token_patterns.scanString(text)]
         self.assertEqual(result, [
             tokens.TokenList([
-                tokens.Paragraph([None, None, None, 'a', '1', 'iii']),
-                tokens.Paragraph([None, None, None, 'a', '1', 'iv', 'B']),
-                tokens.Paragraph([None, None, None, 'c', '2'],
+                tokens.Paragraph([None, None, 'a', '1', 'iii']),
+                tokens.Paragraph([None, None, 'a', '1', 'iv', 'B']),
+                tokens.Paragraph([None, None, 'c', '2'],
                     field = tokens.Paragraph.TEXT_FIELD),
-                tokens.Paragraph([None, None, None, 'c', '2', 'ii', 'A', '2']),
+                tokens.Paragraph([None, None, 'c', '2', 'ii', 'A', '2']),
             ]),
             tokens.Verb(tokens.Verb.MOVE, active=True),
             tokens.Paragraph([None, None, 'c', '2', 'iii']),

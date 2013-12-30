@@ -185,12 +185,12 @@ def make_par_list(listify):
 multiple_sections = (
     atomic.sections_marker
     + make_multiple(unified.part_section)
-    ).setParseAction(make_par_list(lambda m: [m.part, None, m.section]))
+    ).setParseAction(make_par_list(lambda m: [m.part, m.section]))
 
 multiple_pars = (
     atomic.paragraphs_marker
     + make_multiple(unified.depth1_p)
-    ).setParseAction(make_par_list(lambda m: [m.part, None, m.section,
+    ).setParseAction(make_par_list(lambda m: [m.part,  m.section,
         m.p1, m.p2, m.p3, m.p4, m.p5]))
 
 multiple_appendices = make_multiple(unified.appendix_with_section
